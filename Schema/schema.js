@@ -1,5 +1,5 @@
 const {projects,clients} = require("../SampleData");
-const {GraphQLObjectType,GraphQLID,GraphQLString, GraphQLSchema, GraphQLList} = require("graphql");
+const {GraphQLObjectType,GraphQLID,GraphQLString, GraphQLSchema, GraphQLList, GraphQLNonNull} = require("graphql");
 const Project = require("../Models/project");
 const Client = require("../Models/client");
 
@@ -45,7 +45,7 @@ const RootQuery = new GraphQLObjectType({
             type:ProjectType,
             args:{id:{type:GraphQLID}},
             resolve(parent,args){
-               return Project.findById(args.id);
+               return Project.findById(args._id);
 
             }
         },
@@ -60,13 +60,47 @@ const RootQuery = new GraphQLObjectType({
         type:ClientType,
         args:{id:{type:GraphQLID}},
         resolve(parent,args){
-            return Client.findById(args.id);
+            return Client.findById(args._id);
         }
     }
     }
 });
 
+
+//mutations 
+const mutation = new GraphQLObjectType({
+    name:"Mutation",
+    fields:{
+        addClient:{
+            type:ClientType,
+            args:{
+                name:{type:new GraphQLNonNull(GraphQLString)},
+                email:{type:new GraphQLNonNull(GraphQLString)},
+                phone:{type:new GraphQLNonNull(GraphQLString)},
+
+            },
+            resolve(parent,args){
+                const client = new Client({
+                    name:args.name,
+                    email:args.email,
+                    phone:args.phone
+
+                });
+
+                return client.save();
+
+            }
+
+        }
+        
+    }
+})
+
+
+
+
 module.exports = new GraphQLSchema({
-    query:RootQuery
+    query:RootQuery,
+    mutation:mutation
 })
 
